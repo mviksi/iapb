@@ -1,0 +1,57 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Terrain generation</title>
+    <link rel="stylesheet" href="styles/styles.css">
+	</head>
+	<body>
+    <div class = "generatedWorld"></div>
+    <div class = "inner"></div>
+		<div id ="hideWhiteSpace">
+			<input id="myInput" type="file"/>
+		</div>
+		<script src="js/jquery-3.3.1.min.js"></script>
+		<script src="js/perlin.js"></script>
+		<script src="js/three.js"></script>
+		<script src="js/dat.gui.min.js"></script>
+		<script src="js/Terrain.js"></script>
+		<script src="js/OrbitControls.js"></script>
+		<!--  Custom Shader Code, https://github.com/stemkoski/stemkoski.github.com/blob/master/Three.js/Shader-Heightmap-Textures.html  -->
+		<script id="vertexShader" type="x-shader/x-vertex">
+		uniform float in_min;
+		uniform float in_max;
+		varying vec2 vUV;
+		varying float height;
+
+		void main(){
+			vUV = uv;
+			height = (position.z - in_min) / (in_max - in_min);
+			gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+		}
+			</script>
+			<script id="fragmentShader" type="x-shader/x-vertex">
+
+			uniform sampler2D grassTexture;
+			uniform sampler2D snowTexture;
+			uniform sampler2D dirtTexture;
+			uniform sampler2D sandTexture;
+
+			uniform float grassStart;
+			uniform float dirtStart;
+			uniform float snowStart;
+
+			varying vec2 vUV;
+			varying float height;
+
+			void main(){
+				vec4 sand = (1.0 - smoothstep(grassStart, grassStart + 0.1, height)) * texture2D( sandTexture, vUV  );
+				vec4 grass = (smoothstep(grassStart, grassStart + 0.1, height) - smoothstep(dirtStart, snowStart, height)) * texture2D( grassTexture, vUV * 10.0);
+				vec4 dirt = (smoothstep(dirtStart, snowStart, height) - smoothstep(snowStart, 0.99, height)) * texture2D( dirtTexture, vUV * 10.0);
+				vec4 snow = (smoothstep(snowStart, 0.99, height)) * texture2D( snowTexture, vUV   );
+				gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0) + grass + sand + dirt + snow;
+			}
+			</script>
+			<script src="js/main.js"></script>
+	</body>
+</html>
